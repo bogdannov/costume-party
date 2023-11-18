@@ -12,7 +12,7 @@
       <v-row class="d-flex align-center justify-center">
         <v-col cols="auto">
           <v-btn
-            :to="{name: 'Pedik'}"
+            :to="{name: 'Party'}"
             min-width="164"
             rel="noopener noreferrer"
             target="_blank"
@@ -31,7 +31,7 @@
         <v-col cols="auto">
           <v-btn
             color="primary"
-            :to="{name: 'Pedik'}"
+            :to="{name: 'Party'}"
             min-width="228"
             rel="noopener noreferrer"
             size="x-large"
@@ -50,7 +50,7 @@
 
         <v-col cols="auto">
           <v-btn
-            :to="{name: 'Pedik'}"
+            :to="{name: 'Party'}"
             min-width="164"
             rel="noopener noreferrer"
             target="_blank"

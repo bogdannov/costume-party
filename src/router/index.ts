@@ -8,19 +8,43 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'Home',
+        name: 'Auth',
+        // route level code-splitting
+        // this generates a separate chunk (Home-[hash].js) for this route
+        // which is lazy-loaded when the route is visited.
+        component: () => import('@/views/Auth.vue'),
+      },
+      {
+        path: 'create',
+        name: 'CreateCostume',
+        // route level code-splitting
+        // this generates a separate chunk (Home-[hash].js) for this route
+        // which is lazy-loaded when the route is visited.
+        component: () => import('@/views/CreateCostume.vue'),
+      },
+      {
+        path: 'pedic',
+        name: 'Pedik',
         // route level code-splitting
         // this generates a separate chunk (Home-[hash].js) for this route
         // which is lazy-loaded when the route is visited.
         component: () => import('@/views/Home.vue'),
       },
       {
-        path: '/pedik',
-        name: 'Pedik',
+        path: '/party',
+        name: 'Party',
         // route level code-splitting
         // this generates a separate chunk (Home-[hash].js) for this route
         // which is lazy-loaded when the route is visited.
-        component: () => import('@/views/Pedik.vue'),
+        component: () => import('@/views/Party.vue'),
+      },
+      {
+        path: '/wait-party',
+        name: 'WaitForParty',
+        // route level code-splitting
+        // this generates a separate chunk (Home-[hash].js) for this route
+        // which is lazy-loaded when the route is visited.
+        component: () => import('@/views/WaitForParty.vue'),
       },
     ],
   },
