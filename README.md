@@ -1,6 +1,6 @@
 # base
 
-## Егор педик
+## Богдан педик
 
 
 ### Compiles and hot-reloads for development
