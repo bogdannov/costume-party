@@ -4,26 +4,21 @@ import type { Datas, imgParams } from "vue3-fortune-wheel";
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import GiftAnimation from '@/components/GiftAnimation.vue';
 import { useGuiPreferencesStore } from '@/store/gui-preferences-store';
-import axios from 'axios';
 import { storeToRefs } from 'pinia';
 import ConnectionPanel from '@/components/ConnectionPanel.vue';
+import { useCostumeStore } from '@/store/costume-store';
 
-const { send: sendBroadcast, connect, setSpinWheel } = useGuiPreferencesStore();
+const { setSpinWheel } = useGuiPreferencesStore();
 const { isSpinWheel } = storeToRefs(useGuiPreferencesStore())
 let moved = ref(false);
 let isSpinning = ref(false);
 const wheel = ref(null);
 const wheelWrap = ref(null);
 const isGiftActive = ref(false);
-const chosenCostume = ref('Ошибка');
-const chosenCostumeIndex = ref('0');
+const costumeStore = useCostumeStore();
+const { chooseCostume } = costumeStore;
+const { chosenCostume, chosenCostumeIndex } = storeToRefs(costumeStore);
 
-// Choose win costume
-const chooseCostume = async () => {
-  const res = await axios.get('https://4oq1s9baoa.execute-api.us-east-1.amazonaws.com/costume');
-  console.log(res);
-  chosenCostume.value = res;
-}
 
 watch(isSpinWheel, () => {
   if (isSpinWheel) {
@@ -36,14 +31,10 @@ watch(isSpinWheel, () => {
     isSpinning.value = false;
   }
 })
-const launchWheel = () => {
-  chooseCostume();
-};
 
 const done = () => {
   setTimeout(() => {
     isSpinning.value = false;
-    chosenCostume.value = 'Егор гей';
     isGiftActive.value = true;
   }, 500)
 }
@@ -56,7 +47,7 @@ const moveListener = () => {
 }
 const upListener = () => {
   if (moved.value && !isSpinning.value) {
-    launchWheel()
+      chooseCostume()
   }
 }
 
@@ -118,7 +109,7 @@ const data = [
         <template v-slot:default >
           <div>
             <h3 class="costume-ttl">Кликни и узнай свой костюм: </h3>
-            <GiftAnimation :costume-name="chosenCostume" />
+            <GiftAnimation :costume-name="chosenCostume.title" />
           </div>
         </template>
       </v-dialog>

@@ -33,12 +33,12 @@ const onSent = (name: string) => {
   >
     <v-card-title>Тут напиши имя свое</v-card-title>
     <v-card-text>
-      <CustomTextInput
+      <custom-text-input
         @on-send="onSent"
         :send="send"
         label="Хто я?"
         :default-message="defaultMessage"
-      ></CustomTextInput>
+      />
     </v-card-text>
     <v-card-subtitle v-if="isWaiting">Ща дальше идем, сек</v-card-subtitle>
   </v-card>

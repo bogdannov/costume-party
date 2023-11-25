@@ -24,7 +24,7 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
             JSON.stringify({ action: 'routeA', data: message })
         );
     };
-    const connect = () => {
+    const connect = (userId: string) => {
         /*
          * See https://html.spec.whatwg.org/multipage/indices.html#events-2
          * for details around each WebSocket event type.
@@ -34,7 +34,8 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
         }
         // WebSocket sends a message to API Gateway on creation that gets
         // routed to the '$connect' route
-        websocket = new WebSocket('wss://iijoc4f228.execute-api.us-east-1.amazonaws.com/dev');
+        websocket = new WebSocket(`wss://iijoc4f228.execute-api.us-east-1.amazonaws.com/dev?userId=${userId}`);
+        console.log(websocket);
 
         websocket.onclose = ({ wasClean, code, reason }) => {
             messages.value.push(
@@ -60,7 +61,8 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
             }
         };
 
-        websocket.onopen = () => {
+        websocket.onopen = (ws) => {
+            console.log(ws);
             messages.value.push('onopen:    Connected successfully.');
             triggerConnections();
         };

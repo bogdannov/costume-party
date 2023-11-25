@@ -11,6 +11,7 @@ const router = useRouter();
 
 onMounted(() => {
   if (user.value) {
+    // TODO #costume get and check for costumes length and only then redirect to WaitForParty other case redirect to create costume
     router.push({ name: 'WaitForParty'})
   } else {
     router.push({ name: 'Auth'})

@@ -2,18 +2,19 @@
 import CustomTextInput from '@/components/CustomTextInput.vue';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useGuiPreferencesStore } from '@/store/gui-preferences-store';
+import { useAuthStore } from '@/store/auth-store';
+import { createCostume } from '@/api/costume';
 
-const { send: sendBroadcast } = useGuiPreferencesStore();
+const { user } = useAuthStore();
 const router = useRouter();
-const succeed = ref([]);
-const isSuccess = computed(() => succeed.value.length === 2)
-const send = () => {
-  return new Promise((resolve, reject) => resolve(true))
+const costumesSent = ref(0);
+const isAllCostumesSent = computed(() => costumesSent.value === 2)
+const send = (title: string) => {
+  return createCostume(user, title);
 }
 
 const onSend = () => {
-  succeed.value.push(true);
+  costumesSent.value += 1;
 }
 
 const party = () => {
@@ -28,10 +29,9 @@ const party = () => {
     max-width="400"
   >
     <v-card-title>Тут напиши costumes свои</v-card-title>
-    <v-card-subtitle>{{succeed.length}}/2</v-card-subtitle>
+    <v-card-subtitle>{{costumesSent}}/2</v-card-subtitle>
     <v-card-text>
       <custom-text-input
-        :validation-on-send="() => true"
         default-message="Дикий пингвин"
         label="Тут напиши костюм номер раз"
         :send="send"
@@ -39,15 +39,14 @@ const party = () => {
         @on-send="onSend"
       />
       <custom-text-input
-        :validation-on-send="() => true"
         default-message="Шляпа расспределитель"
         label="А тут напиши костюм номер два"
         :send="send"
         :icon="'mdi-wizard-hat'"
         @on-send="onSend"
       />
-      <v-card-subtitle v-if="isSuccess">Thank you. Костюмі приняті</v-card-subtitle>
-      <v-btn prepend-icon="mdi-go-kart" variant="outlined" @click="party" v-if="isSuccess">Поехалииии!</v-btn>
+      <v-card-subtitle v-if="isAllCostumesSent">Thank you. Костюмі приняті</v-card-subtitle>
+      <v-btn prepend-icon="mdi-go-kart" variant="outlined" @click="party" v-if="isAllCostumesSent">Поехалииии!</v-btn>
     </v-card-text>
   </v-card>
 </template>

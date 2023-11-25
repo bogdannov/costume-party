@@ -3,10 +3,10 @@ import { required } from '@/helpers/validation';
 import { ref } from 'vue';
 import { Ref } from 'vue';
 type Props = {
-  validationOnSend: (value: string) => string | boolean,
   label: string,
-  send: () => Promise<any>,
+  send: (value: string) => Promise<any>,
   defaultMessage?: string,
+  validationOnSend?: (value: string) => string | boolean,
   icon?: string,
 }
 const emit = defineEmits(['onSend']);
@@ -45,8 +45,7 @@ const send =  async () => {
   }
   if (!isErrorValidation.value) {
     // send request
-    const response = await props.send();
-    console.log(response);
+    const response = await props.send(message.value);
     if (response) {
       isSuccess.value = true;
       emit('onSend', message.value);
