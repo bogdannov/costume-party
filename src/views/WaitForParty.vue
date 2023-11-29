@@ -12,24 +12,38 @@ const { user } = useAuthStore();
 const router = useRouter();
 const { connected } = storeToRefs(useGuiPreferencesStore());
 const costumeStore = useCostumeStore();
-const { fetchCostumes } = costumeStore;
-const { costumes } = storeToRefs(costumeStore);
+const { fetchCostumes, fetchUserCostumes } = costumeStore;
+const { costumes, userCostumes } = storeToRefs(costumeStore);
+const playersToStart = 2;
+const costumesNeeded = 2;
 
 onMounted(() => {
   if (user && user.id) {
-    connect(user.id);
+    connect(user.id, user.name);
+    fetchUserCostumes(user.id);
   } else {
     router.push({ name: 'Auth' })
   }
 })
 
 watchEffect( () => {
-  if (connected.value >= 2  && costumes.value.length === 0) {
-    // get costumes
-    fetchCostumes();
+  if (userCostumes.value === undefined) {
+    console.log('HERE 1')
+    return;
   }
-  if (connected.value >= 2 && costumes.value.length > 0) {
+  if (userCostumes.value.length < costumesNeeded) {
+    console.log('HERE')
+    router.push({ name: 'CreateCostume' });
+    return;
+  }
+  if (connected.value >= playersToStart  && costumes.value.length === 0) {
+    console.log('HERE 2')
+    fetchCostumes();
+    return;
+  }
+  if (connected.value >= playersToStart && costumes.value.length > 0) {
     router.push({ name: 'Party' });
+    return;
   }
 })
 </script>

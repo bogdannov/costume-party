@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia';
-import { Ref, ref } from 'vue';
+import { computed, Ref, ref } from 'vue';
+import { useCostumeStore } from '@/store/costume-store';
+import { useAuthStore } from '@/store/auth-store';
+import { Connection, Connections, Costume } from '@/types';
 
 export type BroadcastMessage = {
     type: string;
@@ -11,20 +14,20 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
     const messages: Ref<string[]> = ref([])
     const isSpinWheel = ref(false);
     const connected = ref(0);
+    const players: Ref<Connection[]>= ref([]);
+    const currentPlayer: Ref<Connection> = ref({} as Connection);
 
-    const triggerConnections = (message: string) => {
+
+    const triggerConnections = () => {
         if (!websocket) {
             return;
         }
-        messages.value.push('client:    Sending a message.');
-
         websocket.send(
-            // This message will be routed to 'routeA' based on the 'action'
-            // property
-            JSON.stringify({ action: 'routeA', data: message })
+            JSON.stringify({ action: 'connections', data: 'connections' })
         );
     };
-    const connect = (userId: string) => {
+
+    const connect = (userId: string, name: string) => {
         /*
          * See https://html.spec.whatwg.org/multipage/indices.html#events-2
          * for details around each WebSocket event type.
@@ -32,38 +35,51 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
         if (websocket !== null) {
             return;
         }
+        const { setWinCostume, setCostumes } = useCostumeStore();
         // WebSocket sends a message to API Gateway on creation that gets
         // routed to the '$connect' route
-        websocket = new WebSocket(`wss://iijoc4f228.execute-api.us-east-1.amazonaws.com/dev?userId=${userId}`);
+        websocket = new WebSocket(`wss://iijoc4f228.execute-api.us-east-1.amazonaws.com/dev?userId=${userId}&name=${name}`);
         console.log(websocket);
-
         websocket.onclose = ({ wasClean, code, reason }) => {
-            messages.value.push(
+            console.log(
                 `onclose:   ${JSON.stringify({ wasClean, code, reason })}`);
         };
 
         websocket.onerror = error => {
             console.log(error);
-            messages.value.push(
+            console.log(
                 'onerror:   An error has occurred. See console for details.'
             );
         };
 
         websocket.onmessage = ({ data }) => {
-            messages.value.push(`onmessage: ${data}`);
+            console.log(`onmessage: ${data}`);
             const parsed: BroadcastMessage = JSON.parse(data);
             if (parsed.type === 'SpinWheel') {
                 isSpinWheel.value = true;
             }
             if (parsed.type === 'Connections') {
-                console.log('Connections', parseInt(parsed.body))
-                connected.value = parseInt(parsed.body);
+                const connections: Connection[] = JSON.parse(parsed.body);
+                connected.value = connections.length;
+                players.value = connections;
+                currentPlayer.value = connections[0];
+                console.log('Connections', players, connections);
+                messages.value.push(`${connections[0].name} теперь с нами!`);
+            }
+            if (parsed.type === 'WinCostume') {
+                const costume = JSON.parse(parsed.body) as Costume;
+                console.log('WinCostume', costume);
+                setWinCostume(costume.costumeId);
+            }
+            if (parsed.type === 'SetCostumes') {
+                const costumes = JSON.parse(parsed.body) as Costume[];
+                setCostumes(costumes);
             }
         };
 
         websocket.onopen = (ws) => {
             console.log(ws);
-            messages.value.push('onopen:    Connected successfully.');
+            console.log('onopen:    Connected successfully.');
             triggerConnections();
         };
     };
@@ -73,7 +89,7 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
         }
         // WebSocket sends a message to API Gateway that gets routed to the
         // '$disconnect' route.
-        messages.value.push('client:    Closing the connection.');
+        console.log('client:    Closing the connection.');
         websocket.close();
     }
 
@@ -81,13 +97,44 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
         isSpinWheel.value = value;
     }
 
+    const sendMessage = (message: string, action?: string) => {
+        websocket?.send(JSON.stringify({ action: action ?? 'routeA', data: message }))
+    }
+
+    const sendSpinWheel = () => {
+      sendMessage('SpinWheel');
+    }
+
+    const triggerChooseCostume = () => {
+        sendMessage('', 'chooseCostume')
+    }
+
+    const isCurrentPlayerTurn = computed(() => {
+        const { user } = useAuthStore();
+        console.log(currentPlayer.value.userId, user.id);
+        return user.id === currentPlayer.value.userId;
+    });
+
+    const nextTurn = () => {
+        const index = players.value.findIndex((p) => p.userId === currentPlayer.value.userId);
+        if (players.value.length < index + 1) {
+            currentPlayer.value = players.value[0];
+        }
+        currentPlayer.value = players.value[index + 1];
+    }
+
   return {
+      sendSpinWheel,
       setSpinWheel,
+      triggerChooseCostume,
       isSpinWheel,
+      nextTurn,
       disconnect,
-      triggerConnections,
       connect,
       messages,
       connected,
+      currentPlayer,
+      players,
+      isCurrentPlayerTurn,
   };
 });

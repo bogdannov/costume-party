@@ -1,13 +1,20 @@
 <script lang="ts" setup>
-import { onMounted, Ref, ref } from 'vue';
+import { onMounted, Ref, ref, watch } from 'vue';
 import { useGuiPreferencesStore } from '@/store/gui-preferences-store';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/store/auth-store';
-const { messages, connect } = storeToRefs(useGuiPreferencesStore())
+const { messages } = storeToRefs(useGuiPreferencesStore())
 const { user } = storeToRefs(useAuthStore())
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const snackbar = ref(false);
+const snackbarText = ref('');
+
+watch(messages, () => {
+  console.log('on message');
+  snackbar.value = true;
+}, {deep: true})
 
 onMounted(() => {
   if (user.value) {
@@ -22,7 +29,21 @@ onMounted(() => {
 
 <template>
   <router-view />
-  <pre>{{ messages.join('\n') }}</pre>
+  <v-snackbar
+    v-model="snackbar"
+  >
+    {{ messages[messages.length - 1] }}
+
+    <template v-slot:actions>
+      <v-btn
+        color="pink"
+        variant="text"
+        @click="snackbar = false"
+      >
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <style lang="scss" scoped>

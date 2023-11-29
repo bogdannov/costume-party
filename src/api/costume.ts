@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Costume, User } from '@/types';
+import { Costume, CreateCostumePayload, User } from '@/types';
 
 export const chooseCostume = async (): Promise<Costume | undefined> => {
     const response = await axios.get('https://4oq1s9baoa.execute-api.us-east-1.amazonaws.com/costume');
@@ -10,7 +10,7 @@ export const chooseCostume = async (): Promise<Costume | undefined> => {
 }
 
 export const createCostume = async (user: User, title: string): Promise<Costume | undefined> => {
-  const costume: Costume = {
+  const costume: CreateCostumePayload = {
       title,
       userId: user.id,
       userName: user.name,
@@ -32,5 +32,22 @@ export const getAllCostumes = async (): Promise<Costume[] | undefined> => {
   console.error('Error on choosing costume');
 }
 
-// TODO #costume
-export const getUserCostumes = async () => {}
+export const getUserCostumes = async (userId: string) => {
+  const response = await axios.get(
+    `https://4oq1s9baoa.execute-api.us-east-1.amazonaws.com/userCostumes/${userId}`
+  );
+  if (response.status === 200) {
+    return response.data;
+  }
+  console.error('Error on get user costumes');
+}
+
+export const deleteCostume = async (costumeId: string, userId: string): Promise<null | Error> => {
+  const response = await axios.delete(
+    `https://4oq1s9baoa.execute-api.us-east-1.amazonaws.com/costume/${userId}/${costumeId}`
+  );
+  if (response.status === 200) {
+    return null;
+  }
+  throw Error('Error on delete costume')
+}

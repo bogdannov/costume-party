@@ -1,109 +1,110 @@
 <script setup lang="ts">
-import { Wheel } from "vue3-fortune-wheel";
-import type { Datas, imgParams } from "vue3-fortune-wheel";
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import FortuneWheel from 'vue-fortune-wheel'
+import 'vue-fortune-wheel/style.css'
+import { computed, onMounted, ref, watch } from 'vue';
 import GiftAnimation from '@/components/GiftAnimation.vue';
 import { useGuiPreferencesStore } from '@/store/gui-preferences-store';
 import { storeToRefs } from 'pinia';
 import ConnectionPanel from '@/components/ConnectionPanel.vue';
 import { useCostumeStore } from '@/store/costume-store';
+import { useAuthStore } from '@/store/auth-store';
 
-const { setSpinWheel } = useGuiPreferencesStore();
-const { isSpinWheel } = storeToRefs(useGuiPreferencesStore())
-let moved = ref(false);
-let isSpinning = ref(false);
-const wheel = ref(null);
+const { setSpinWheel, sendSpinWheel, triggerChooseCostume, nextTurn } = useGuiPreferencesStore();
+const { isSpinWheel, isCurrentPlayerTurn, currentPlayer } = storeToRefs(useGuiPreferencesStore())
 const wheelWrap = ref(null);
+const wheelEl = ref();
 const isGiftActive = ref(false);
+const componentKey = ref(1);
 const costumeStore = useCostumeStore();
-const { chooseCostume } = costumeStore;
-const { chosenCostume, chosenCostumeIndex } = storeToRefs(costumeStore);
+const { user } = useAuthStore()
+const { deleteCostume, setIsCostumeChoosing } = costumeStore;
+const { chosenCostume, costumes, isCostumeChoosing } = storeToRefs(costumeStore);
 
+const canvasOptions = {
+  btnWidth: 140,
+  borderColor: '#584b43',
+  borderWidth: 6,
+  lineHeight: 30
+}
+
+watch(costumes, () => {
+  componentKey.value = componentKey.value + 1;
+})
+
+const preparedCostume = computed(() => {
+  return costumes.value.map((c) => ({
+    id: c.costumeId,
+    name: `Костюм от ${c.userName}`,
+    value: c.title,
+    bgColor: c.bgColor,
+    color: c.color,
+    probability: 100 / costumes.value.length,
+  }))
+})
+const canSpinWheel = computed(() => {
+  return !isCostumeChoosing.value && !isSpinWheel.value && isCurrentPlayerTurn.value;
+})
+
+document.addEventListener("click", (e) => {
+    if (!isCurrentPlayerTurn.value) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+}, true);
+
+watch(isGiftActive, async () => {
+  if (isGiftActive.value === false && isCurrentPlayerTurn.value) {
+      await deleteCostume(chosenCostume.value.costumeId, user.id);
+      triggerChooseCostume();
+      nextTurn();
+  }
+})
+
+const rotateStart = () => {
+  sendSpinWheel();
+  setSpinWheel(true);
+}
 
 watch(isSpinWheel, () => {
-  if (isSpinWheel) {
-    wheel.value.spin();
-    isSpinning.value = true;
-    setTimeout(() => {
-      setSpinWheel(false);
-    }, 3000);
-  } else {
-    isSpinning.value = false;
+  if (isSpinWheel.value) {
+    wheelEl.value.startRotate();
   }
 })
 
 const done = () => {
-  setTimeout(() => {
-    isSpinning.value = false;
+  setTimeout( () => {
+    setSpinWheel(false);
     isGiftActive.value = true;
   }, 500)
 }
 
-const downListener = () => {
-  moved.value = false
-}
-const moveListener = () => {
-  moved.value = true
-}
-const upListener = () => {
-  if (moved.value && !isSpinning.value) {
-      chooseCostume()
-  }
-}
-
 onMounted(() => {
-  // console.log(wheel.value.spin())
-  console.log(wheelWrap.value)
-  wheelWrap.value.addEventListener('mousedown', downListener);
-  wheelWrap.value.addEventListener('mousemove', moveListener)
-  wheelWrap.value.addEventListener('mouseup', upListener)
+  if (isCurrentPlayerTurn.value) {
+    triggerChooseCostume();
+  }
 })
 
-onUnmounted(() => {
-  wheelWrap.value.removeEventListener('mousedown', downListener)
-  wheelWrap.value.removeEventListener('mousemove', moveListener)
-  wheelWrap.value.removeEventListener('mouseup', upListener)
-})
-
-const data = [
-  {
-    id: 1,
-    value: "Егор костюм 1",
-    color: '#7d7db3',
-    bgColor: '#d50e0e'
-  },
-  {
-    id: 2,
-    value: "Богдан костюм 1",
-    color: '#ffffff',
-    bgColor: '#1e6bce'
-  },
-  {
-    id: 3,
-    value: "Вика костюм 1",
-    color: '#ffffff',
-    bgColor: '#60af45'
-  },
-  {
-    id: 3,
-    value: "Катя костюм 1",
-    color: '#ffffff',
-    bgColor: '#d0b824'
-  },
-];
 
 </script>
 
 <template>
   <div class="d-flex justify-center align-center flex-column">
-    <h2 class="mt-10 text-black">Крути колесо фортуны и узнай свой костюм!!! {{isSpinning}}</h2>
+    <h2 class="mt-10 text-black">Крути колесо фортуны и узнай свой костюм!!! {{chosenCostume.costumeId}}</h2>
+    {{ costumes.length }}
+    <h4>Сейчас время крутить колесо дляяяя {{currentPlayer.name}}</h4>
+    <p> Могу ли я крутить колесо? {{canSpinWheel ? 'Да :)' : 'Нет :('}}</p>
     <div ref="wheelWrap">
-      <Wheel
-          :gift="chosenCostumeIndex"
-          :imgParams="{}"
-          @done="done"
-          ref="wheel"
-          v-model="data"
+      <FortuneWheel
+          :key="componentKey"
+        v-if="chosenCostume.costumeId"
+        ref="wheelEl"
+        style="width: 800px; max-width: 100%;"
+        :verify="false"
+        :canvas="canvasOptions"
+        :prizes="preparedCostume"
+        :prizeId="chosenCostume.costumeId"
+        @rotateEnd="done"
+        @rotateStart="rotateStart"
       />
       <v-dialog v-model="isGiftActive">
         <template v-slot:default >
