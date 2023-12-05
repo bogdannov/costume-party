@@ -17,6 +17,7 @@ const message = ref(props.defaultMessage ?? '');
 const isErrorValidation = ref(false);
 const errorMessage = ref('');
 const isSuccess = ref(false);
+const isSending = ref(false);
 
 const validationSameValue = (value: string) => {
   return true;
@@ -45,11 +46,13 @@ const send =  async () => {
   }
   if (!isErrorValidation.value) {
     // send request
+    isSending.value = true;
     const response = await props.send(message.value);
     if (response) {
       isSuccess.value = true;
       emit('onSend', message.value);
     }
+    isSending.value = false;
   }
 }
 </script>
@@ -57,7 +60,6 @@ const send =  async () => {
 <template>
   <v-text-field
     v-model="message"
-    :append-icon="!isSuccess ? 'mdi-send' : 'mdi-thumb-up'"
     :append-inner-icon="props.icon ?? 'mdi-emoticon-cool'"
     variant="filled"
     clear-icon="mdi-close-circle"
@@ -69,7 +71,21 @@ const send =  async () => {
     @click:clear="() => message = ''"
     :error="isErrorValidation"
     :error-messages="errorMessage"
-  ></v-text-field>
+  >
+    <template #append>
+      <v-progress-circular
+          v-if="isSending"
+          indeterminate
+          color="purple"
+      ></v-progress-circular>
+      <v-btn v-else
+             @click="send"
+             variant="text"
+             size="auto"
+             :icon="!isSuccess ? 'mdi-send' : 'mdi-thumb-up'"
+      ></v-btn>
+    </template>
+  </v-text-field>
 </template>
 
 <style scoped>

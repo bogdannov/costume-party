@@ -28,16 +28,14 @@ onMounted(() => {
 
 watchEffect( () => {
   if (userCostumes.value === undefined) {
-    console.log('HERE 1')
     return;
   }
   if (userCostumes.value.length < costumesNeeded) {
-    console.log('HERE')
+
     router.push({ name: 'CreateCostume' });
     return;
   }
   if (connected.value >= playersToStart  && costumes.value.length === 0) {
-    console.log('HERE 2')
     fetchCostumes();
     return;
   }

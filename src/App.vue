@@ -12,7 +12,6 @@ const snackbar = ref(false);
 const snackbarText = ref('');
 
 watch(messages, () => {
-  console.log('on message');
   snackbar.value = true;
 }, {deep: true})
 

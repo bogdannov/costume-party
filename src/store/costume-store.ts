@@ -6,7 +6,6 @@ export const useCostumeStore = defineStore('costume-store', () => {
   const userCostumes: Ref<Costume[] | undefined> = ref(undefined);  // TODO #costume
   const costumes: Ref<Costume[]> = ref([] as Costume[]);
   const chosenCostume: Ref<Costume> = ref({} as Costume);
-  const chosenCostumeIndex: Ref<number | null> = ref(null);
   const isCostumeChoosing: Ref<boolean> = ref(false);
   const fetchCostumes = async () => {
     const response = await getAllCostumes();
@@ -20,20 +19,9 @@ export const useCostumeStore = defineStore('costume-store', () => {
     const setCostumes = (costumesArray: Costume[]) => {
       costumes.value = costumesArray;
     }
-  const setWinCostume = (id: string) => {
-      const winCostume = costumes.value.find((costume) => costume.costumeId === id);
-      if (winCostume) {
-        chosenCostume.value = winCostume;
-      }
-      else {
-        console.error(`Costume win cant be found ${JSON.stringify(winCostume)}`)
-        return;
-      }
-      const winIndex = costumes.value.findIndex((item) =>
-        item.costumeId === winCostume.costumeId
-      )
-      chosenCostumeIndex.value = winIndex >= 0 ? winIndex : null;
-      return;
+  const setWinCostume = (winCostume: Costume) => {
+      chosenCostume.value = winCostume;
+      setIsCostumeChoosing(false);
   }
   const  fetchUserCostumes = async (userId: string) => {
     userCostumes.value = await getUserCostumes(userId);
@@ -42,7 +30,6 @@ export const useCostumeStore = defineStore('costume-store', () => {
     const setIsCostumeChoosing =  (value: boolean) => {
         isCostumeChoosing.value = value;
     }
-
 
     const deleteCostume = async (costumeId: string, userId: string) => {
     await apiDeleteCostume(costumeId, userId);
@@ -56,7 +43,6 @@ export const useCostumeStore = defineStore('costume-store', () => {
     setIsCostumeChoosing,
       setCostumes,
     chosenCostume,
-    chosenCostumeIndex,
     costumes,
     userCostumes,
     isCostumeChoosing

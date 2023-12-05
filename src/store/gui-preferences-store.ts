@@ -39,10 +39,7 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
         // WebSocket sends a message to API Gateway on creation that gets
         // routed to the '$connect' route
         websocket = new WebSocket(`wss://iijoc4f228.execute-api.us-east-1.amazonaws.com/dev?userId=${userId}&name=${name}`);
-        console.log(websocket);
         websocket.onclose = ({ wasClean, code, reason }) => {
-            console.log(
-                `onclose:   ${JSON.stringify({ wasClean, code, reason })}`);
         };
 
         websocket.onerror = error => {
@@ -63,13 +60,13 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
                 connected.value = connections.length;
                 players.value = connections;
                 currentPlayer.value = connections[0];
-                console.log('Connections', players, connections);
+                console.log('Connections', currentPlayer.value);
                 messages.value.push(`${connections[0].name} теперь с нами!`);
             }
             if (parsed.type === 'WinCostume') {
                 const costume = JSON.parse(parsed.body) as Costume;
                 console.log('WinCostume', costume);
-                setWinCostume(costume.costumeId);
+                setWinCostume(costume);
             }
             if (parsed.type === 'SetCostumes') {
                 const costumes = JSON.parse(parsed.body) as Costume[];
@@ -116,10 +113,13 @@ export const useGuiPreferencesStore = defineStore('gui-preferences', () => {
     });
 
     const nextTurn = () => {
+        console.log(currentPlayer.value);
         const index = players.value.findIndex((p) => p.userId === currentPlayer.value.userId);
-        if (players.value.length < index + 1) {
+        if (players.value.length <= index + 1) {
             currentPlayer.value = players.value[0];
+            return;
         }
+        console.log(players.value.length, index + 1);
         currentPlayer.value = players.value[index + 1];
     }
 

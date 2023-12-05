@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import FortuneWheel from 'vue-fortune-wheel'
 import 'vue-fortune-wheel/style.css'
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, toRaw, watch } from 'vue';
 import GiftAnimation from '@/components/GiftAnimation.vue';
 import { useGuiPreferencesStore } from '@/store/gui-preferences-store';
 import { storeToRefs } from 'pinia';
@@ -46,17 +46,22 @@ const canSpinWheel = computed(() => {
 })
 
 document.addEventListener("click", (e) => {
-    if (!isCurrentPlayerTurn.value) {
+    if (!canSpinWheel.value) {
         e.stopPropagation();
         e.preventDefault();
     }
 }, true);
 
 watch(isGiftActive, async () => {
-  if (isGiftActive.value === false && isCurrentPlayerTurn.value) {
-      await deleteCostume(chosenCostume.value.costumeId, user.id);
+  setIsCostumeChoosing(true);
+  const isActiveRaw = !!isGiftActive.value;
+  if (!isActiveRaw && isCurrentPlayerTurn.value) {
+    console.log(`DELETE ${JSON.stringify(chosenCostume.value)}`);
+      await deleteCostume(chosenCostume.value.costumeId, chosenCostume.value.userId);
       triggerChooseCostume();
-      nextTurn();
+  }
+  if (!isActiveRaw) {
+    nextTurn();
   }
 })
 
@@ -90,8 +95,9 @@ onMounted(() => {
 <template>
   <div class="d-flex justify-center align-center flex-column">
     <h2 class="mt-10 text-black">Крути колесо фортуны и узнай свой костюм!!! {{chosenCostume.costumeId}}</h2>
-    {{ costumes.length }}
-    <h4>Сейчас время крутить колесо дляяяя {{currentPlayer.name}}</h4>
+    <p v-if="isCostumeChoosing"> Анализруем ситуацию... Все перемешиваем... Ожидаем, не паникуем </p>
+    <p v-else>  </p>
+    <h4>Сейчас время крутить колесо для - {{currentPlayer.name}}</h4>
     <p> Могу ли я крутить колесо? {{canSpinWheel ? 'Да :)' : 'Нет :('}}</p>
     <div ref="wheelWrap">
       <FortuneWheel

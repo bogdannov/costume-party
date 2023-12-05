@@ -13,7 +13,7 @@ const { connected } = storeToRefs(useGuiPreferencesStore());
   >
     <v-list-item
         link
-        prepend-icon="mdi-inbox-arrow-down"
+        prepend-icon="mdi-account-heart-outline"
         title="Нас тут"
     >
       <template v-slot:append>
