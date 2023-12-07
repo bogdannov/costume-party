@@ -2,7 +2,7 @@
 import { useGuiPreferencesStore } from '@/store/gui-preferences-store';
 import { storeToRefs } from 'pinia';
 
-const { connected } = storeToRefs(useGuiPreferencesStore());
+const { connected, players } = storeToRefs(useGuiPreferencesStore());
 </script>
 
 <template>
@@ -23,6 +23,16 @@ const { connected } = storeToRefs(useGuiPreferencesStore());
             inline
         ></v-badge>
       </template>
+    </v-list-item>
+    <v-list-item
+            v-for="(item, i) in players"
+            :key="i"
+    >
+        <template v-slot:prepend>
+            <v-icon :icon="'mdi-emoticon-devil'"></v-icon>
+        </template>
+
+        <v-list-item-title> {{item.name}} </v-list-item-title>
     </v-list-item>
   </v-list>
 </template>

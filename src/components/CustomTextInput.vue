@@ -9,7 +9,7 @@ type Props = {
   validationOnSend?: (value: string) => string | boolean,
   icon?: string,
 }
-const emit = defineEmits(['onSend']);
+const emit = defineEmits(['onSend', 'onBlur']);
 const props = defineProps<Props>();
 
 const defaultErrorMessage = 'Свое напиши))';
@@ -20,7 +20,6 @@ const isSuccess = ref(false);
 const isSending = ref(false);
 
 const validationSameValue = (value: string) => {
-  return true;
   if (value === props.defaultMessage) {
     return defaultErrorMessage;
   }
@@ -67,6 +66,7 @@ const send =  async () => {
     :label="props.label"
     type="text"
     :rules="[required]"
+    @click:control="emit('onBlur')"
     @click:append="send"
     @click:clear="() => message = ''"
     :error="isErrorValidation"

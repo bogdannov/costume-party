@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CustomTextInput from '@/components/CustomTextInput.vue';
-import { computed, ref } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/auth-store';
 import { createCostume } from '@/api/costume';
@@ -9,13 +9,24 @@ const { user } = useAuthStore();
 const router = useRouter();
 const costumesSent = ref(0);
 const isAllCostumesSent = computed(() => costumesSent.value === 2)
+const audio = ref();
+audio.value = new Audio('/nice.mp3')
 const send = (title: string) => {
   return createCostume(user, title);
 }
 
 const onSend = () => {
   costumesSent.value += 1;
+  playSound()
 }
+
+const playSound = () => {
+  audio.value.play()
+}
+
+onUnmounted(() => {
+  audio.value = undefined;
+})
 
 const party = () => {
   router.push({ name: 'WaitForParty' })

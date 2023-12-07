@@ -8,6 +8,7 @@ import { storeToRefs } from 'pinia';
 import ConnectionPanel from '@/components/ConnectionPanel.vue';
 import { useCostumeStore } from '@/store/costume-store';
 import { useAuthStore } from '@/store/auth-store';
+import TickerLine from '@/components/TickerLine.vue';
 
 const { setSpinWheel, sendSpinWheel, triggerChooseCostume, nextTurn } = useGuiPreferencesStore();
 const { isSpinWheel, isCurrentPlayerTurn, currentPlayer } = storeToRefs(useGuiPreferencesStore())
@@ -19,6 +20,8 @@ const costumeStore = useCostumeStore();
 const { user } = useAuthStore()
 const { deleteCostume, setIsCostumeChoosing } = costumeStore;
 const { chosenCostume, costumes, isCostumeChoosing } = storeToRefs(costumeStore);
+const audio = ref();
+// const winSound = new Audio();
 
 const canvasOptions = {
   btnWidth: 140,
@@ -72,6 +75,7 @@ const rotateStart = () => {
 
 watch(isSpinWheel, () => {
   if (isSpinWheel.value) {
+      audio.value.play()
     wheelEl.value.startRotate();
   }
 })
@@ -79,11 +83,13 @@ watch(isSpinWheel, () => {
 const done = () => {
   setTimeout( () => {
     setSpinWheel(false);
+    // winSound.play();
     isGiftActive.value = true;
   }, 500)
 }
 
 onMounted(() => {
+  audio.value = new Audio('/audio.mp3')
   if (isCurrentPlayerTurn.value) {
     triggerChooseCostume();
   }
@@ -94,11 +100,20 @@ onMounted(() => {
 
 <template>
   <div class="d-flex justify-center align-center flex-column">
-    <h2 class="mt-10 text-black">Крути колесо фортуны и узнай свой костюм!!! {{chosenCostume.costumeId}}</h2>
-    <p v-if="isCostumeChoosing"> Анализруем ситуацию... Все перемешиваем... Ожидаем, не паникуем </p>
+    <TickerLine />
+    <h2 class="mt-10 text-black">Крути колесо фортуны и узнай свой костюм!!!</h2>
+    <p v-if="isCostumeChoosing">
+        Анализруем ситуацию... Все перемешиваем... Ожидаем, не паникуем
+        <v-progress-linear
+                indeterminate
+                color="yellow-darken-2"
+        ></v-progress-linear>
+    </p>
     <p v-else>  </p>
-    <h4>Сейчас время крутить колесо для - {{currentPlayer.name}}</h4>
-    <p> Могу ли я крутить колесо? {{canSpinWheel ? 'Да :)' : 'Нет :('}}</p>
+    <h4> Могу ли я крутить колесо?
+        <span v-if="canSpinWheel"> ДА! <v-icon>mdi-emoticon-excited-outline</v-icon></span>
+        <span v-else>НЕТ!<v-icon>mdi-emoticon-neutral-outline</v-icon></span>
+    </h4>
     <div ref="wheelWrap">
       <FortuneWheel
           :key="componentKey"
@@ -121,10 +136,6 @@ onMounted(() => {
         </template>
       </v-dialog>
     </div>
-<!--    <v-btn-->
-<!--        text="All connected"-->
-<!--        @click=""-->
-<!--    ></v-btn>-->
     <ConnectionPanel />
   </div>
 </template>

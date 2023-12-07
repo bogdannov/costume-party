@@ -2,7 +2,7 @@
 import ConnectionPanel from '@/components/ConnectionPanel.vue';
 import { storeToRefs } from 'pinia';
 import { useGuiPreferencesStore } from '@/store/gui-preferences-store';
-import { onMounted, watchEffect } from 'vue';
+import { onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/auth-store';
 import { useCostumeStore } from '@/store/costume-store';
@@ -16,13 +16,23 @@ const { fetchCostumes, fetchUserCostumes } = costumeStore;
 const { costumes, userCostumes } = storeToRefs(costumeStore);
 const playersToStart = 2;
 const costumesNeeded = 2;
+const audio = ref();
 
 onMounted(() => {
   if (user && user.id) {
+    audio.value = new Audio('/waiting.mp3')
+    audio.value.loop = true;
+    audio.value.play()
     connect(user.id, user.name);
     fetchUserCostumes(user.id);
   } else {
     router.push({ name: 'Auth' })
+  }
+})
+
+onUnmounted(() => {
+  if (audio.value) {
+    audio.value.stop();
   }
 })
 
