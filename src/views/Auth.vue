@@ -44,7 +44,7 @@ const onSent = (name: string) => {
 <template>
   <v-card class="mx-auto pa-2" max-width="400" color="grey-lighten-3" v-if="!isSoundOn">
     <v-card-title>Включи звук! И погромче сделай)</v-card-title>
-    <v-btn append-icon="mdi-hand-okay" -icon="mdi-go-kart" variant="outlined" @click="isSoundOn = true">Готово!</v-btn>
+    <v-btn append-icon="mdi-hand-okay" variant="outlined" @click="isSoundOn = true">Готово!</v-btn>
   </v-card>
   <v-card
     class="mx-auto"

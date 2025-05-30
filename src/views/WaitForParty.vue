@@ -14,7 +14,7 @@ const { connected } = storeToRefs(useGuiPreferencesStore());
 const costumeStore = useCostumeStore();
 const { fetchCostumes, fetchUserCostumes } = costumeStore;
 const { costumes, userCostumes } = storeToRefs(costumeStore);
-const playersToStart = 2;
+const playersToStart = 4;
 const costumesNeeded = 2;
 const audio = ref();
 
@@ -32,7 +32,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (audio.value) {
-    audio.value.stop();
+    audio.value.pause();
   }
 })
 
@@ -58,7 +58,7 @@ watchEffect( () => {
 
 <template>
   <div>
-    <h1>Ждем остальнх</h1>
+    <h1>Waiting for others to start</h1>
   </div>
   <ConnectionPanel />
 </template>

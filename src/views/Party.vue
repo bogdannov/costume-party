@@ -35,7 +35,8 @@ watch(costumes, () => {
 })
 
 const preparedCostume = computed(() => {
-  return costumes.value.map((c) => ({
+
+  const a = costumes.value.map((c) => ({
     id: c.costumeId,
     name: `Костюм от ${c.userName}`,
     value: c.title,
@@ -43,8 +44,12 @@ const preparedCostume = computed(() => {
     color: c.color,
     probability: 100 / costumes.value.length,
   }))
+  console.log(a);
+  return a;
 })
 const canSpinWheel = computed(() => {
+  console.log(!isCostumeChoosing.value, !isSpinWheel.value, isCurrentPlayerTurn.value);
+  console.log(currentPlayer);
   return !isCostumeChoosing.value && !isSpinWheel.value && isCurrentPlayerTurn.value;
 })
 
@@ -56,17 +61,18 @@ document.addEventListener("click", (e) => {
 }, true);
 
 watch(isGiftActive, async () => {
-  setIsCostumeChoosing(true);
   const isActiveRaw = !!isGiftActive.value;
+  if (isActiveRaw) {
+    setIsCostumeChoosing(true);
+  }
   if (!isActiveRaw && isCurrentPlayerTurn.value) {
-    console.log(`DELETE ${JSON.stringify(chosenCostume.value)}`);
       await deleteCostume(chosenCostume.value.costumeId, chosenCostume.value.userId);
       triggerChooseCostume();
   }
   if (!isActiveRaw) {
     nextTurn();
   }
-})
+});
 
 const rotateStart = () => {
   sendSpinWheel();
@@ -76,7 +82,7 @@ const rotateStart = () => {
 watch(isSpinWheel, () => {
   if (isSpinWheel.value) {
       audio.value.play()
-    wheelEl.value.startRotate();
+      wheelEl.value.startRotate();
   }
 })
 
@@ -85,6 +91,9 @@ const done = () => {
     setSpinWheel(false);
     // winSound.play();
     isGiftActive.value = true;
+    setTimeout(() => {
+      isGiftActive.value = false;
+    }, 10000);
   }, 500)
 }
 
@@ -121,13 +130,14 @@ onMounted(() => {
         ref="wheelEl"
         style="width: 800px; max-width: 100%;"
         :verify="false"
+        :useWeight="true"
         :canvas="canvasOptions"
         :prizes="preparedCostume"
         :prizeId="chosenCostume.costumeId"
         @rotateEnd="done"
         @rotateStart="rotateStart"
       />
-      <v-dialog v-model="isGiftActive">
+      <v-dialog v-model="isGiftActive" :persistent="true">
         <template v-slot:default >
           <div>
             <h3 class="costume-ttl">Кликни и узнай свой костюм: </h3>
